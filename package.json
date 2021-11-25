@@ -4,7 +4,8 @@
   "description": "Third Hexlet's Javascript Frontend Project",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
     "eslint": "^8.3.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.25.3",
+    "html-webpack-plugin": "^5.5.0",
     "webpack": "^5.64.4",
     "webpack-cli": "^4.9.1"
   },
