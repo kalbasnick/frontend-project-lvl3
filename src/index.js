@@ -1,6 +1,4 @@
-import _ from 'lodash';
 import './style.css';
-import 'bootstrap';
 
 const component = () => {
   const element = document.createElement('form');

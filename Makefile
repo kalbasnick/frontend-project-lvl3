@@ -7,3 +7,6 @@ install:
 build:
 	rm -rf dist
 	npm run build
+
+install:
+	npm ci
