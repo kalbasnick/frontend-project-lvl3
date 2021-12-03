@@ -3,9 +3,40 @@ body {
   max-width: 1000px;
   padding-top: 2rem;
   font-size: xx-large;
+  background: gray;
+  background-size: 50% 100%;
 }
 
 .btn {
-  font-size: medium;
-  color: blueviolet;
+  font-size: large;
+  color:white;
 }
+
+h1 {
+  color: white;
+  margin-left: 100px;
+}
+
+h3 {
+  color: white;
+  margin-left: 100px;
+  font-size: large;
+}
+
+form {
+  margin-left: 100px;
+}
+
+input {
+  size: 20;
+}
+
+p {
+  margin-left: 100px;
+  font-size: medium;
+  color:black;
+}
+
+/* .error-msg {
+  color: rgb(212, 42, 42);
+} */
