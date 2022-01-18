@@ -2,6 +2,7 @@ import onChange from 'on-change';
 import * as yup from 'yup';
 import i18next from 'i18next';
 import axios from 'axios';
+import _ from 'lodash';
 import parseData from './parser';
 import resources from './locales/index';
 import extractData from './rssbuilder';
@@ -151,7 +152,7 @@ export default () => {
       const [rendredFeed, renderedPosts] = renderedData;
 
       feeds.append(rendredFeed);
-      posts.append(renderedPosts);
+      posts.prepend(renderedPosts);
     }
   });
 
@@ -183,16 +184,42 @@ export default () => {
 
     if (state.form.valid) {
       watchedState.form.processState = 'sending';
-      axios.get(`https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(url)}`)
+      const addressToPullContent = `https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(url)}`;
+      axios.get(addressToPullContent)
         .then((responce) => {
           state.feedsLog.push(url);
           const loadedData = responce.data.contents;
           const parsedData = parseData(loadedData);
-          const [extractedFeeds, extractedPosts] = extractData(parsedData);
+          const feedId = _.uniqueId();
+          const [extractedFeeds, extractedPosts] = extractData(parsedData, feedId);
+
           watchedState.data = {
             feeds: [...state.data.feeds, extractedFeeds],
             posts: [...state.data.posts, ...extractedPosts],
           };
+
+          const checkDataUpdates = () => setTimeout(() => axios.get(addressToPullContent)
+            .then((updatedResponce) => {
+              const updatedLoadedData = updatedResponce.data.contents;
+              const updatedParsedData = parseData(updatedLoadedData);
+              const [, updatedExtractedPosts] = extractData(updatedParsedData, feedId);
+
+              const currentPosts = state.data.posts
+                .filter((post) => post.feedId === feedId)
+                .map((post) => post.title);
+
+              const newPosts = updatedExtractedPosts
+                .filter((updatedPost) => !currentPosts.includes(updatedPost.title));
+
+              watchedState.data = {
+                feeds: state.data.feeds,
+                posts: [...state.data.posts, ...newPosts],
+              };
+
+              checkDataUpdates();
+            }), 5000);
+
+          checkDataUpdates();
         })
         .catch((error) => {
           state.form.error = error;

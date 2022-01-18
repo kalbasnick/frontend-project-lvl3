@@ -1,6 +1,12 @@
 import _ from 'lodash';
 
-export default (element) => {
+const useRegexOnString = (str, regex) => {
+  const result = str.match(regex);
+
+  return result === null ? str : result[0];
+};
+
+export default (element, feedId) => {
   const rssEl = element.querySelector('rss');
   if (!rssEl) {
     throw new Error('Invalid RSS');
@@ -8,12 +14,11 @@ export default (element) => {
 
   const feedTitle = element.querySelector('title');
   const feedDescription = element.querySelector('description');
-  const feedId = _.uniqueId();
-
+  const dataFromCdataRegex = /(?<=<!\[CDATA\[)(.*)(?=\]\]>)/;
   const feeds = {
     id: feedId,
-    title: feedTitle.textContent,
-    description: feedDescription.textContent,
+    title: useRegexOnString(feedTitle.textContent, dataFromCdataRegex),
+    description: useRegexOnString(feedDescription.textContent, dataFromCdataRegex),
   };
 
   const posts = [];
@@ -21,14 +26,15 @@ export default (element) => {
 
   elementPosts.forEach((post) => {
     const postTitle = post.querySelector('title');
-    const postUrl = post.textContent.match(/\bhttps?:\/\/\S+/gi);
+    const urlFromTextRegex = /\bhttps?:\/\/\S+/;
+    const postUrl = useRegexOnString(post.textContent, urlFromTextRegex);
     const postId = _.uniqueId();
 
     posts.push({
       id: postId,
       feedId,
-      title: postTitle.textContent,
-      link: postUrl[0],
+      title: useRegexOnString(postTitle.textContent, dataFromCdataRegex),
+      link: postUrl,
     });
   });
 
