@@ -9,5 +9,6 @@ export default {
     invalidRssError: 'Ресурс не содержит валидный RSS',
     feedsTitle: 'Фиды',
     postsTitle: 'Посты',
+    buttonText: 'Просмотр',
   },
 };

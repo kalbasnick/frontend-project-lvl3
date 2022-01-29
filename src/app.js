@@ -1,73 +1,11 @@
-import onChange from 'on-change';
 import * as yup from 'yup';
-import i18next from 'i18next';
 import axios from 'axios';
 import _ from 'lodash';
+import i18next from 'i18next';
 import parseData from './parser';
+import watchState from './view';
 import resources from './locales/index';
-import extractData from './rssbuilder';
-
-const renderData = ({ feeds, posts }, [dataName1, dataName2]) => {
-  const buildCardEl = (name) => {
-    const card = document.createElement('div');
-    card.classList.add('card');
-    const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body');
-    const feedsTitle = document.createElement('h2');
-    feedsTitle.classList.add('card-title');
-    feedsTitle.textContent = name;
-    cardBody.append(feedsTitle);
-    card.append(cardBody);
-
-    return card;
-  };
-
-  const newFeedsCard = buildCardEl(dataName1);
-  const newPostsCard = buildCardEl(dataName2);
-
-  const feedsList = document.createElement('ul');
-  feedsList.classList.add('list-group');
-  const postsList = document.createElement('ul');
-  postsList.classList.add('list-group');
-
-  feeds.forEach((feed) => {
-    const feedLiEl = document.createElement('li');
-    feedLiEl.classList.add('list-group-item');
-
-    const feedTitle = document.createElement('h3');
-    const feedDescription = document.createElement('p');
-    feedTitle.textContent = feed.title;
-    feedDescription.textContent = feed.description;
-
-    feedLiEl.append(feedTitle, feedDescription);
-    feedsList.append(feedLiEl);
-
-    posts.forEach((post) => {
-      if (post.feedId === feed.id) {
-        const postLiEl = document.createElement('li');
-        postLiEl.classList.add('list-group-item');
-
-        const postAEl = document.createElement('a');
-        postAEl.setAttribute('href', post.link);
-        postAEl.setAttribute('data-id', post.id);
-        postAEl.textContent = post.title;
-
-        const postButton = document.createElement('button');
-        postButton.setAttribute('type', 'button');
-        postButton.setAttribute('data-id', post.id);
-        postButton.classList.add('btn', 'btn-outline-primary');
-        postButton.textContent = 'Просмотр';
-
-        postLiEl.append(postAEl, postButton);
-        postsList.append(postLiEl);
-      }
-    });
-  });
-
-  newFeedsCard.append(feedsList);
-  newPostsCard.append(postsList);
-  return [newFeedsCard, newPostsCard];
-};
+import extractData from './dataExtracter';
 
 export default () => {
   const i18nextInstance = i18next.createInstance();
@@ -90,10 +28,10 @@ export default () => {
 
   const schema = (data) => yup.string().url().required().notOneOf(data);
 
-  const form = document.querySelector('.rss-form');
-  const input = document.querySelector('#url-input');
-  const submitButton = document.querySelector('[type="submit"]');
-  const feedback = document.querySelector('.feedback');
+  const elements = {
+    form: document.querySelector('.rss-form'),
+    input: document.querySelector('#url-input'),
+  };
 
   const state = {
     form: {
@@ -102,64 +40,19 @@ export default () => {
       valid: false,
       error: [],
     },
-    feedsLog: [],
     data: {
       feeds: [],
       posts: [],
     },
   };
 
-  const watchedState = onChange(state, (path, value) => {
-    if (path === 'form.processState') {
-      if (value === 'proceed') {
-        input.classList.remove('is-invalid');
-        feedback.textContent = i18nextInstance.t('proceed');
-        feedback.classList.add('text-success');
-        feedback.classList.remove('text-danger');
-        submitButton.disabled = false;
-      }
-      if (value === 'sending') {
-        submitButton.disabled = true;
-        feedback.textContent = '';
-      }
-      if (value === 'validationError') {
-        submitButton.disabled = false;
-        input.classList.add('is-invalid');
-        feedback.classList.add('text-danger');
-        feedback.textContent = state.form.error;
-      }
-      if (value === 'loadingError') {
-        submitButton.disabled = false;
-        feedback.classList.add('text-danger');
-        if (state.form.error.message === 'Invalid RSS') {
-          feedback.textContent = i18nextInstance.t('invalidRssError');
-        }
-        if (state.form.error.message === 'Network Error') {
-          feedback.textContent = i18nextInstance.t('networkError');
-        }
-      }
-    }
-    if (path === 'data') {
-      const feeds = document.querySelector('.feeds');
-      const posts = document.querySelector('.posts');
+  const watchedState = watchState(state, i18nextInstance);
 
-      feeds.innerHTML = '';
-      posts.innerHTML = '';
-
-      const feedsTitle = i18nextInstance.t('feedsTitle');
-      const postsTitle = i18nextInstance.t('postsTitle');
-      const renderedData = renderData(state.data, [feedsTitle, postsTitle]);
-      const [rendredFeed, renderedPosts] = renderedData;
-
-      feeds.append(rendredFeed);
-      posts.prepend(renderedPosts);
-    }
-  });
-
-  input.addEventListener('change', (e) => {
+  elements.input.addEventListener('change', (e) => {
     state.form.processState = 'filling';
     const { value } = e.target;
-    schema(state.feedsLog).validate(value)
+    const feedsLog = state.data.feeds.map((feed) => feed.url);
+    schema(feedsLog).validate(value)
       .then(() => {
         state.form.error = [];
         state.form.valid = true;
@@ -173,7 +66,7 @@ export default () => {
       });
   });
 
-  form.addEventListener('submit', (e) => {
+  elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url-input');
@@ -184,42 +77,36 @@ export default () => {
 
     if (state.form.valid) {
       watchedState.form.processState = 'sending';
-      const addressToPullContent = `https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(url)}`;
-      axios.get(addressToPullContent)
+      const makeProxyUrl = (address) => `https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(address)}`;
+      axios.get(makeProxyUrl(url))
         .then((responce) => {
-          state.feedsLog.push(url);
           const loadedData = responce.data.contents;
           const parsedData = parseData(loadedData);
-          const feedId = _.uniqueId();
-          const [extractedFeeds, extractedPosts] = extractData(parsedData, feedId);
+          const [extractedFeed, extractedPosts] = extractData(parsedData);
+          const feed = { ...extractedFeed, url };
 
           watchedState.data = {
-            feeds: [...state.data.feeds, extractedFeeds],
+            feeds: [...state.data.feeds, feed],
             posts: [...state.data.posts, ...extractedPosts],
           };
 
-          const checkDataUpdates = () => setTimeout(() => axios.get(addressToPullContent)
-            .then((updatedResponce) => {
-              const updatedLoadedData = updatedResponce.data.contents;
-              const updatedParsedData = parseData(updatedLoadedData);
-              const [, updatedExtractedPosts] = extractData(updatedParsedData, feedId);
+          const postsElement = document.querySelector('.posts');
+          postsElement.addEventListener('click', (event) => {
+            const clickedElement = event.target;
+            if (clickedElement.dataset.bsToggle === 'modal' || clickedElement.tagName === 'A') {
+              const postId = clickedElement.getAttribute('data-id');
+              const newPosts = state.data.posts.reduce((acc, post) => {
+                acc.push(post.id === postId ? { ...post, clicked: true } : post);
 
-              const currentPosts = state.data.posts
-                .filter((post) => post.feedId === feedId)
-                .map((post) => post.title);
-
-              const newPosts = updatedExtractedPosts
-                .filter((updatedPost) => !currentPosts.includes(updatedPost.title));
+                return acc;
+              }, []);
 
               watchedState.data = {
                 feeds: state.data.feeds,
-                posts: [...state.data.posts, ...newPosts],
+                posts: newPosts,
               };
-
-              checkDataUpdates();
-            }), 5000);
-
-          checkDataUpdates();
+            }
+          });
         })
         .catch((error) => {
           state.form.error = error;
@@ -228,8 +115,38 @@ export default () => {
         })
         .then(() => {
           watchedState.form.processState = 'proceed';
-          form.reset();
-          form.focus();
+          elements.form.reset();
+          elements.form.focus();
+        })
+        .then(() => {
+          if (state.data.feeds.length > 0) {
+            state.data.feeds.forEach((feed) => {
+              const checkDataUpdates = () => setTimeout(() => axios.get(makeProxyUrl(feed.url))
+                .then((updatedResponce) => {
+                  const loadedUpdatedData = updatedResponce.data.contents;
+                  const parsedUpdatedData = parseData(loadedUpdatedData);
+                  const [, extractedUpdatedPosts] = extractData(parsedUpdatedData, feed.id);
+
+                  const currentPosts = state.data.posts
+                    .filter((post) => post.feedId === feed.id)
+                    .map((post) => post.title);
+
+                  const updatedPosts = extractedUpdatedPosts
+                    .filter((updatedPost) => !currentPosts.includes(updatedPost.title));
+
+                  if (updatedPosts.length > 0) {
+                    watchedState.data = {
+                      feeds: state.data.feeds,
+                      posts: [...state.data.posts, ...updatedPosts],
+                    };
+                  }
+
+                  checkDataUpdates();
+                }), 5000);
+
+              checkDataUpdates();
+            });
+          }
         });
     }
   });
