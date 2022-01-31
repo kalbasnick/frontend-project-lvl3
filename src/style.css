@@ -1,8 +1,7 @@
-body {
+/* body {
   color: black;
   max-width: 1000px;
   padding-top: 2rem;
-  font-size: xx-large;
   background: gray;
   background-size: 50% 100%;
   margin-left: 50px;
@@ -31,19 +30,17 @@ h1 {
 h3 {
   color: black;
   font-size: large;
-}
+} */
 
-form {
-}
 
-input {
+/* input {
   size: 100;
-}
+} */
 
-p {
+/* p {
   font-size: medium;
   color:black;
-}
+} */
 
 /* .error-msg {
   color: rgb(212, 42, 42);

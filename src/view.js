@@ -11,37 +11,41 @@ const elements = {
   modalFooter: document.querySelector('.modal-footer'),
 };
 
+const buildCardEl = (title) => {
+  const card = document.createElement('div');
+  card.classList.add('card', 'border-0');
+  const cardBody = document.createElement('div');
+  cardBody.classList.add('card-body');
+  const feedsTitle = document.createElement('h2');
+  feedsTitle.classList.add('card-title', 'h4');
+  feedsTitle.textContent = title;
+  cardBody.append(feedsTitle);
+  card.append(cardBody);
+
+  return card;
+};
+
 export default (state, i18nextInstance) => onChange(state, (path, value) => {
-  const buildData = (data, [dataName1, dataName2]) => {
+  const render = (data) => {
     const { feeds, posts } = data;
-    const buildCardEl = (name) => {
-      const card = document.createElement('div');
-      card.classList.add('card');
-      const cardBody = document.createElement('div');
-      cardBody.classList.add('card-body');
-      const feedsTitle = document.createElement('h2');
-      feedsTitle.classList.add('card-title');
-      feedsTitle.textContent = name;
-      cardBody.append(feedsTitle);
-      card.append(cardBody);
-
-      return card;
-    };
-
-    const feedsCardEl = buildCardEl(dataName1);
-    const postsCardEl = buildCardEl(dataName2);
+    const feedsElementTitle = i18nextInstance.t('feedsElementTitle');
+    const postsElementTitle = i18nextInstance.t('postsElementTitle');
+    const feedsCardEl = buildCardEl(feedsElementTitle);
+    const postsCardEl = buildCardEl(postsElementTitle);
 
     const feedsList = document.createElement('ul');
-    feedsList.classList.add('list-group');
+    feedsList.classList.add('list-group', 'border-0', 'rounded-0');
     const postsList = document.createElement('ul');
-    postsList.classList.add('list-group');
+    postsList.classList.add('list-group', 'border-0', 'rounded-0');
 
     feeds.forEach((feed) => {
       const feedLiEl = document.createElement('li');
-      feedLiEl.classList.add('list-group-item');
+      feedLiEl.classList.add('list-group-item', 'border-0', 'border-end-0');
 
       const feedTitle = document.createElement('h3');
+      feedTitle.classList.add('h6', 'm-0');
       const feedDescription = document.createElement('p');
+      feedDescription.classList.add('m-0', 'small', 'text-black-50');
       feedTitle.textContent = feed.title;
       feedDescription.textContent = feed.description;
 
@@ -51,12 +55,14 @@ export default (state, i18nextInstance) => onChange(state, (path, value) => {
       posts.forEach((post) => {
         if (post.feedId === feed.id) {
           const postLiEl = document.createElement('li');
-          postLiEl.classList.add('list-group-item');
+          postLiEl.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
 
           const postAEl = document.createElement('a');
           postAEl.setAttribute('href', post.link);
           postAEl.setAttribute('data-id', post.id);
           postAEl.setAttribute('target', '_blank');
+          postAEl.setAttribute('rel', 'noopener');
+          postAEl.setAttribute('rel', 'norefferer');
           postAEl.textContent = post.title;
 
           if (post.clicked) {
@@ -76,7 +82,6 @@ export default (state, i18nextInstance) => onChange(state, (path, value) => {
           modalButton.dataset.bsToggle = 'modal';
           modalButton.setAttribute('data-id', post.id);
           modalButton.textContent = i18nextInstance.t('buttonText');
-
           modalButton.addEventListener('click', () => {
             elements.modalTitle.textContent = post.title;
             elements.modalDescription.textContent = post.description;
@@ -129,12 +134,10 @@ export default (state, i18nextInstance) => onChange(state, (path, value) => {
     elements.feeds.innerHTML = '';
     elements.posts.innerHTML = '';
 
-    const feedsTitle = i18nextInstance.t('feedsTitle');
-    const postsTitle = i18nextInstance.t('postsTitle');
-    const builtData = buildData(state.data, [feedsTitle, postsTitle]);
-    const [builtFeed, builtPosts] = builtData;
+    const renderedData = render(state.data);
+    const [renderedFeed, renderedPosts] = renderedData;
 
-    elements.feeds.append(builtFeed);
-    elements.posts.prepend(builtPosts);
+    elements.feeds.append(renderedFeed);
+    elements.posts.prepend(renderedPosts);
   }
 });

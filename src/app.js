@@ -25,16 +25,8 @@ export default () => {
     },
   });
 
-  const schema = (data) => yup.string().url().required().notOneOf(data);
-
-  const elements = {
-    form: document.querySelector('.rss-form'),
-    input: document.querySelector('#url-input'),
-  };
-
   const state = {
     form: {
-      value: '',
       processState: 'filling',
       valid: false,
       error: [],
@@ -46,79 +38,61 @@ export default () => {
   };
 
   const watchedState = watchState(state, i18nextInstance);
+  const form = document.querySelector('.rss-form');
 
-  elements.input.addEventListener('change', (e) => {
-    state.form.processState = 'filling';
-    const { value } = e.target;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const url = formData.get('url');
     const feedsLog = state.data.feeds.map((feed) => feed.url);
-    schema(feedsLog).validate(value)
+    const schema = (data) => yup.string().url().required().notOneOf(data);
+    schema(feedsLog).validate(url)
       .then(() => {
         state.form.error = [];
         state.form.valid = true;
-      })
-      .catch((err) => {
-        state.form.error = err.errors;
-        state.form.valid = false;
-      })
-      .then(() => {
-        state.form.value = value;
-      });
-  });
+        watchedState.form.processState = 'sending';
+        const makeProxyUrl = (address) => `https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(address)}`;
+        axios.get(makeProxyUrl(url))
+          .then((responce) => {
+            const loadedData = responce.data.contents;
+            const parsedData = parseData(loadedData);
+            const [extractedFeed, extractedPosts] = extractData(parsedData);
+            const feed = { ...extractedFeed, url };
 
-  elements.form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const url = formData.get('url-input');
+            watchedState.data = {
+              feeds: [...state.data.feeds, feed],
+              posts: [...state.data.posts, ...extractedPosts],
+            };
 
-    if (!state.form.valid) {
-      watchedState.form.processState = 'validationError';
-    }
+            const postsElement = document.querySelector('.posts');
+            postsElement.addEventListener('click', (event) => {
+              const clickedElement = event.target;
+              if (clickedElement.dataset.bsToggle === 'modal' || clickedElement.tagName === 'A') {
+                const dataId = clickedElement.getAttribute('data-id');
+                const updatedPosts = state.data.posts.reduce((acc, post) => {
+                  acc.push(post.id === dataId ? { ...post, clicked: true } : post);
 
-    if (state.form.valid) {
-      watchedState.form.processState = 'sending';
-      const makeProxyUrl = (address) => `https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(address)}`;
-      axios.get(makeProxyUrl(url))
-        .then((responce) => {
-          const loadedData = responce.data.contents;
-          const parsedData = parseData(loadedData);
-          const [extractedFeed, extractedPosts] = extractData(parsedData);
-          const feed = { ...extractedFeed, url };
+                  return acc;
+                }, []);
 
-          watchedState.data = {
-            feeds: [...state.data.feeds, feed],
-            posts: [...state.data.posts, ...extractedPosts],
-          };
-
-          const postsElement = document.querySelector('.posts');
-          postsElement.addEventListener('click', (event) => {
-            const clickedElement = event.target;
-            if (clickedElement.dataset.bsToggle === 'modal' || clickedElement.tagName === 'A') {
-              const postId = clickedElement.getAttribute('data-id');
-              const newPosts = state.data.posts.reduce((acc, post) => {
-                acc.push(post.id === postId ? { ...post, clicked: true } : post);
-
-                return acc;
-              }, []);
-
-              watchedState.data = {
-                feeds: state.data.feeds,
-                posts: newPosts,
-              };
-            }
-          });
-        })
-        .catch((error) => {
-          state.form.error = error;
-          watchedState.form.processState = 'loadingError';
-          throw error;
-        })
-        .then(() => {
-          watchedState.form.processState = 'proceed';
-          elements.form.reset();
-          elements.form.focus();
-        })
-        .then(() => {
-          if (state.data.feeds.length > 0) {
+                watchedState.data = {
+                  feeds: state.data.feeds,
+                  posts: updatedPosts,
+                };
+              }
+            });
+          })
+          .catch((error) => {
+            state.form.error = error;
+            watchedState.form.processState = 'loadingError';
+            throw error;
+          })
+          .then(() => {
+            watchedState.form.processState = 'proceed';
+            form.reset();
+            form.focus();
+          })
+          .then(() => {
             state.data.feeds.forEach((feed) => {
               const checkDataUpdates = () => setTimeout(() => axios.get(makeProxyUrl(feed.url))
                 .then((updatedResponce) => {
@@ -145,8 +119,12 @@ export default () => {
 
               checkDataUpdates();
             });
-          }
-        });
-    }
+          });
+      })
+      .catch((err) => {
+        state.form.error = err.errors;
+        state.form.valid = false;
+        watchedState.form.processState = 'validationError';
+      });
   });
 };
