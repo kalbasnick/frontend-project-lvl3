@@ -42,6 +42,7 @@ export default () => {
 
   document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', (e) => {
+      console.log(form);
       e.preventDefault();
       const formData = new FormData(e.target);
       const url = formData.get('url');
