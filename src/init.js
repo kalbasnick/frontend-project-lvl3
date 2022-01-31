@@ -40,8 +40,10 @@ export default () => {
   const watchedState = watchState(state, i18nextInstance);
   console.log(document);
   const form = document.querySelector('.rss-form');
+  console.log(document);
 
   form.addEventListener('submit', (e) => {
+    console.log(document);
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
