@@ -11,7 +11,7 @@ export default () => {
   i18nextInstance
     .init({
       lng: 'ru',
-      debug: 'false',
+      debug: false,
       resources,
     });
 
