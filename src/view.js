@@ -108,19 +108,23 @@ export default (state, i18nextInstance, container) => onChange(state, (path, val
       elements.feedback.classList.add('text-success');
       elements.feedback.classList.remove('text-danger');
       elements.submitButton.disabled = false;
+      elements.input.removeAttribute('readonly');
     }
     if (value === 'sending') {
       elements.submitButton.disabled = true;
+      elements.input.setAttribute('readonly', 'true');
       elements.feedback.textContent = '';
     }
     if (value === 'validationError') {
       elements.submitButton.disabled = false;
+      elements.input.removeAttribute('readonly');
       elements.input.classList.add('is-invalid');
       elements.feedback.classList.add('text-danger');
       elements.feedback.textContent = state.form.error;
     }
     if (value === 'loadingError') {
       elements.submitButton.disabled = false;
+      elements.input.removeAttribute('readonly');
       elements.feedback.classList.add('text-danger');
       if (state.form.error.message === 'Invalid RSS') {
         elements.feedback.textContent = i18nextInstance.t('invalidRssError');
