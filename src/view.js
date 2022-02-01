@@ -1,16 +1,5 @@
 import onChange from 'on-change';
 
-const elements = {
-  input: document.querySelector('#url-input'),
-  submitButton: document.querySelector('[type="submit"]'),
-  feedback: document.querySelector('.feedback'),
-  feeds: document.querySelector('.feeds'),
-  posts: document.querySelector('.posts'),
-  modalTitle: document.querySelector('.modal-title'),
-  modalDescription: document.querySelector('.modal-body'),
-  modalFooter: document.querySelector('.modal-footer'),
-};
-
 const buildCardEl = (title) => {
   const card = document.createElement('div');
   card.classList.add('card', 'border-0');
@@ -25,7 +14,18 @@ const buildCardEl = (title) => {
   return card;
 };
 
-export default (state, i18nextInstance) => onChange(state, (path, value) => {
+export default (state, i18nextInstance, container) => onChange(state, (path, value) => {
+  const elements = {
+    input: container.querySelector('#url-input'),
+    submitButton: container.querySelector('[type="submit"]'),
+    feedback: container.querySelector('.feedback'),
+    feeds: container.querySelector('.feeds'),
+    posts: container.querySelector('.posts'),
+    modalTitle: container.querySelector('.modal-title'),
+    modalDescription: container.querySelector('.modal-body'),
+    modalFooter: container.querySelector('.modal-footer'),
+  };
+
   const render = (data) => {
     const { feeds, posts } = data;
     const feedsElementTitle = i18nextInstance.t('feedsElementTitle');

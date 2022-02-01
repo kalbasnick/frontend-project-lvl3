@@ -37,7 +37,7 @@ export default () => {
     },
   };
 
-  const watchedState = watchState(state, i18nextInstance);
+  const watchedState = watchState(state, i18nextInstance, document);
   const form = document.querySelector('.rss-form');
 
   if (form) {
@@ -59,12 +59,12 @@ export default () => {
               const parsedData = parseData(loadedData);
               const [extractedFeed, extractedPosts] = extractData(parsedData);
               const feed = { ...extractedFeed, url };
-  
+
               watchedState.data = {
                 feeds: [...state.data.feeds, feed],
                 posts: [...state.data.posts, ...extractedPosts],
               };
-  
+
               const postsElement = document.querySelector('.posts');
               postsElement.addEventListener('click', (event) => {
                 const clickedElement = event.target;
@@ -72,10 +72,10 @@ export default () => {
                   const dataId = clickedElement.getAttribute('data-id');
                   const updatedPosts = state.data.posts.reduce((acc, post) => {
                     acc.push(post.id === dataId ? { ...post, clicked: true } : post);
-  
+
                     return acc;
                   }, []);
-  
+
                   watchedState.data = {
                     feeds: state.data.feeds,
                     posts: updatedPosts,
@@ -100,24 +100,24 @@ export default () => {
                     const loadedUpdatedData = updatedResponce.data.contents;
                     const parsedUpdatedData = parseData(loadedUpdatedData);
                     const [, extractedUpdatedPosts] = extractData(parsedUpdatedData, feed.id);
-  
+
                     const currentPosts = state.data.posts
                       .filter((post) => post.feedId === feed.id)
                       .map((post) => post.title);
-  
+
                     const updatedPosts = extractedUpdatedPosts
                       .filter((updatedPost) => !currentPosts.includes(updatedPost.title));
-  
+
                     if (updatedPosts.length > 0) {
                       watchedState.data = {
                         feeds: state.data.feeds,
                         posts: [...state.data.posts, ...updatedPosts],
                       };
                     }
-  
+
                     checkDataUpdates();
                   }), 5000);
-  
+
                 checkDataUpdates();
               });
             });
