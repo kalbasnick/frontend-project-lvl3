@@ -1,11 +1,11 @@
 import _ from 'lodash';
 
 export default (element, feedId = _.uniqueId()) => {
-  const rssEl = element.querySelector('rss');
-  console.log(element);
-  if (!rssEl) {
-    throw new Error('Invalid RSS');
-  }
+  // const rssEl = element.querySelector('rss');
+
+  // if (!rssEl) {
+  //   throw new Error('Invalid RSS');
+  // }
 
   const feedTitle = element.querySelector('title');
   const feedDescription = element.querySelector('description');
