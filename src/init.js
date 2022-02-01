@@ -37,7 +37,7 @@ export default () => {
     },
   };
 
-  const watchedState = watchState(state, i18nextInstance, document);
+  const watchedState = watchState(document, state, i18nextInstance);
   const form = document.querySelector('.rss-form');
 
   if (form) {
@@ -57,39 +57,46 @@ export default () => {
             .then((responce) => {
               const loadedData = responce.data.contents;
               const parsedData = parseData(loadedData);
-              const [extractedFeed, extractedPosts] = extractData(parsedData);
-              const feed = { ...extractedFeed, url };
+              const extractedData = extractData(parsedData);
+              if (!Array.isArray(extractedData)) {
+                throw new Error(extractedData);
+              } else {
+                const [extractedFeed, extractedPosts] = extractedData;
+                const feed = { ...extractedFeed, url };
 
-              watchedState.data = {
-                feeds: [...state.data.feeds, feed],
-                posts: [...state.data.posts, ...extractedPosts],
-              };
+                watchedState.data = {
+                  feeds: [...state.data.feeds, feed],
+                  posts: [...state.data.posts, ...extractedPosts],
+                };
 
-              const postsElement = document.querySelector('.posts');
-              postsElement.addEventListener('click', (event) => {
-                const clickedElement = event.target;
-                if (clickedElement.dataset.bsToggle === 'modal' || clickedElement.tagName === 'A') {
-                  const dataId = clickedElement.getAttribute('data-id');
-                  const updatedPosts = state.data.posts.reduce((acc, post) => {
-                    acc.push(post.id === dataId ? { ...post, clicked: true } : post);
+                const postsElement = document.querySelector('.posts');
+                postsElement.addEventListener('click', (event) => {
+                  const clickedElement = event.target;
+                  if (clickedElement.dataset.bsToggle === 'modal' || clickedElement.tagName === 'A') {
+                    const dataId = clickedElement.getAttribute('data-id');
+                    const updatedPosts = state.data.posts.reduce((acc, post) => {
+                      acc.push(post.id === dataId ? { ...post, clicked: true } : post);
 
-                    return acc;
-                  }, []);
+                      return acc;
+                    }, []);
 
-                  watchedState.data = {
-                    feeds: state.data.feeds,
-                    posts: updatedPosts,
-                  };
-                }
-              });
+                    watchedState.data = {
+                      feeds: state.data.feeds,
+                      posts: updatedPosts,
+                    };
+                  }
+                });
+              }
             })
-            .catch((error) => {
-              state.form.error = error;
+            .catch((err) => {
+              state.form.error = err;
+              state.form.valid = false;
               watchedState.form.processState = 'loadingError';
-              throw error;
             })
             .then(() => {
-              watchedState.form.processState = 'proceed';
+              if (state.form.error.length === 0) {
+                watchedState.form.processState = 'proceed';
+              }
               form.reset();
               form.focus();
             })
