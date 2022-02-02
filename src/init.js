@@ -92,9 +92,9 @@ export default () => {
             .then(() => {
               if (state.form.error.length === 0) {
                 watchedState.form.processState = 'proceed';
+                form.reset();
+                form.focus();
               }
-              form.reset();
-              form.focus();
             })
             .then(() => {
               state.data.feeds.forEach((feed) => {
