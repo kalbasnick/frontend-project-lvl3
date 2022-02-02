@@ -163,8 +163,7 @@ export default (container, state, i18nextInstance) => onChange(state, (path, val
     elements.feeds.innerHTML = '';
     elements.posts.innerHTML = '';
 
-    const components = render(state.data);
-    const [feed, posts] = components;
+    const [feed, posts] = render(state.data);
 
     elements.feeds.append(feed);
     elements.posts.prepend(posts);
