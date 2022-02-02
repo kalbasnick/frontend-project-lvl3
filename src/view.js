@@ -1,17 +1,24 @@
 import onChange from 'on-change';
 
-const buildCardEl = (title) => {
+const buildComponentEl = (title) => {
   const card = document.createElement('div');
   card.classList.add('card', 'border-0');
+
   const cardBody = document.createElement('div');
   cardBody.classList.add('card-body');
+
   const feedsTitle = document.createElement('h2');
   feedsTitle.classList.add('card-title', 'h4');
   feedsTitle.textContent = title;
+
   cardBody.append(feedsTitle);
   card.append(cardBody);
 
-  return card;
+  const cardList = document.createElement('ul');
+  cardList.classList.add('list-group', 'border-0', 'rounded-0');
+  card.append(cardList);
+
+  return [card, cardList];
 };
 
 export default (container, state, i18nextInstance) => onChange(state, (path, value) => {
@@ -30,13 +37,8 @@ export default (container, state, i18nextInstance) => onChange(state, (path, val
     const { feeds, posts } = data;
     const feedsElementTitle = i18nextInstance.t('feedsElementTitle');
     const postsElementTitle = i18nextInstance.t('postsElementTitle');
-    const feedsCardEl = buildCardEl(feedsElementTitle);
-    const postsCardEl = buildCardEl(postsElementTitle);
-
-    const feedsList = document.createElement('ul');
-    feedsList.classList.add('list-group', 'border-0', 'rounded-0');
-    const postsList = document.createElement('ul');
-    postsList.classList.add('list-group', 'border-0', 'rounded-0');
+    const [feedsCard, feedsList] = buildComponentEl(feedsElementTitle);
+    const [postsCard, postsList] = buildComponentEl(postsElementTitle);
 
     feeds.forEach((feed) => {
       const feedLiEl = document.createElement('li');
@@ -44,9 +46,10 @@ export default (container, state, i18nextInstance) => onChange(state, (path, val
 
       const feedTitle = document.createElement('h3');
       feedTitle.classList.add('h6', 'm-0');
+      feedTitle.textContent = feed.title;
+
       const feedDescription = document.createElement('p');
       feedDescription.classList.add('m-0', 'small', 'text-black-50');
-      feedTitle.textContent = feed.title;
       feedDescription.textContent = feed.description;
 
       feedLiEl.append(feedTitle, feedDescription);
@@ -69,9 +72,7 @@ export default (container, state, i18nextInstance) => onChange(state, (path, val
             postAEl.classList.remove('fw-bold');
             postAEl.classList.add('fw-normal');
             postAEl.classList.add('link-secondary');
-          }
-
-          if (!post.clicked) {
+          } else {
             postAEl.classList.add('fw-bold');
           }
 
@@ -95,53 +96,77 @@ export default (container, state, i18nextInstance) => onChange(state, (path, val
       });
     });
 
-    feedsCardEl.append(feedsList);
-    postsCardEl.append(postsList);
+    return [feedsCard, postsCard];
+  };
 
-    return [feedsCardEl, postsCardEl];
+  const switchFormToMode = (mode) => {
+    switch (mode) {
+      case 'lock':
+        elements.submitButton.disabled = true;
+        elements.input.setAttribute('readonly', 'true');
+        break;
+      case 'unlock':
+        elements.submitButton.disabled = false;
+        elements.input.removeAttribute('readonly');
+        elements.input.classList.remove('is-invalid');
+        break;
+      default:
+        throw new Error(`Unknown mode: ${mode}! Mode should be 'lock' or 'unlock'.`);
+    }
+  };
+
+  const switchFeedbackToMode = (mode) => {
+    switch (mode) {
+      case 'succeed':
+        elements.feedback.classList.add('text-success');
+        elements.feedback.classList.remove('text-danger');
+        break;
+      case 'failed':
+        elements.feedback.classList.add('text-danger');
+        break;
+      default:
+        throw new Error(`Unknown mode: ${mode}! Mode should be 'succeed' or 'failed'.`);
+    }
   };
 
   if (path === 'form.processState') {
-    if (value === 'proceed') {
-      elements.input.classList.remove('is-invalid');
-      elements.feedback.textContent = i18nextInstance.t('proceed');
-      elements.feedback.classList.add('text-success');
-      elements.feedback.classList.remove('text-danger');
-      elements.submitButton.disabled = false;
-      elements.input.removeAttribute('readonly');
-    }
-    if (value === 'sending') {
-      elements.submitButton.disabled = true;
-      elements.input.setAttribute('readonly', 'true');
-      elements.feedback.textContent = '';
-    }
-    if (value === 'validationError') {
-      elements.submitButton.disabled = false;
-      elements.input.removeAttribute('readonly');
-      elements.input.classList.add('is-invalid');
-      elements.feedback.classList.add('text-danger');
-      elements.feedback.textContent = state.form.error;
-    }
-    if (value === 'loadingError') {
-      elements.submitButton.disabled = false;
-      elements.input.removeAttribute('readonly');
-      elements.feedback.classList.add('text-danger');
-      if (state.form.error.message === 'Invalid RSS') {
-        elements.feedback.textContent = i18nextInstance.t('invalidRssError');
-      }
-      if (state.form.error.message === 'Network Error') {
-        elements.feedback.textContent = i18nextInstance.t('networkError');
-      }
+    switch (value) {
+      case 'proceed':
+        switchFormToMode('unlock');
+        switchFeedbackToMode('succeed');
+        elements.feedback.textContent = i18nextInstance.t('proceed');
+        break;
+      case 'sending':
+        switchFormToMode('lock');
+        elements.feedback.textContent = '';
+        break;
+      case 'validationError':
+        switchFormToMode('unlock');
+        switchFeedbackToMode('failed');
+        elements.feedback.textContent = state.form.error;
+        break;
+      case 'loadingError':
+        switchFormToMode('unlock');
+        switchFeedbackToMode('failed');
+        if (state.form.error.message === 'Invalid RSS') {
+          elements.feedback.textContent = i18nextInstance.t('invalidRssError');
+        }
+        if (state.form.error.message === 'Network Error') {
+          elements.feedback.textContent = i18nextInstance.t('networkError');
+        }
+        break;
+      default:
+        break;
     }
   }
   if (path === 'data') {
     elements.feeds.innerHTML = '';
     elements.posts.innerHTML = '';
 
-    const renderedData = render(state.data);
-    const [renderedFeed, renderedPosts] = renderedData;
+    const components = render(state.data);
+    const [feed, posts] = components;
 
-    elements.feeds.append(renderedFeed);
-    elements.posts.prepend(renderedPosts);
+    elements.feeds.append(feed);
+    elements.posts.prepend(posts);
   }
 });
