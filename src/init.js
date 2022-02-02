@@ -58,35 +58,31 @@ export default () => {
               const loadedData = responce.data.contents;
               const parsedData = parseData(loadedData);
               const extractedData = extractData(parsedData);
-              if (!Array.isArray(extractedData)) {
-                throw new Error(extractedData);
-              } else {
-                const [extractedFeed, extractedPosts] = extractedData;
-                const feed = { ...extractedFeed, url };
+              const [extractedFeed, extractedPosts] = extractedData;
+              const feed = { ...extractedFeed, url };
 
-                watchedState.data = {
-                  feeds: [...state.data.feeds, feed],
-                  posts: [...state.data.posts, ...extractedPosts],
-                };
+              watchedState.data = {
+                feeds: [...state.data.feeds, feed],
+                posts: [...state.data.posts, ...extractedPosts],
+              };
 
-                const postsElement = document.querySelector('.posts');
-                postsElement.addEventListener('click', (event) => {
-                  const clickedElement = event.target;
-                  if (clickedElement.dataset.bsToggle === 'modal' || clickedElement.tagName === 'A') {
-                    const dataId = clickedElement.getAttribute('data-id');
-                    const updatedPosts = state.data.posts.reduce((acc, post) => {
-                      acc.push(post.id === dataId ? { ...post, clicked: true } : post);
+              const postsElement = document.querySelector('.posts');
+              postsElement.addEventListener('click', (event) => {
+                const clickedElement = event.target;
+                if (clickedElement.dataset.bsToggle === 'modal' || clickedElement.tagName === 'A') {
+                  const dataId = clickedElement.getAttribute('data-id');
+                  const updatedPosts = state.data.posts.reduce((acc, post) => {
+                    acc.push(post.id === dataId ? { ...post, clicked: true } : post);
 
-                      return acc;
-                    }, []);
+                    return acc;
+                  }, []);
 
-                    watchedState.data = {
-                      feeds: state.data.feeds,
-                      posts: updatedPosts,
-                    };
-                  }
-                });
-              }
+                  watchedState.data = {
+                    feeds: state.data.feeds,
+                    posts: updatedPosts,
+                  };
+                }
+              });
             })
             .catch((err) => {
               state.form.error = err;

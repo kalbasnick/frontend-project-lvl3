@@ -4,7 +4,7 @@ export default (element, feedId = _.uniqueId()) => {
   const rssEl = element.querySelector('rss');
 
   if (!rssEl) {
-    return 'Invalid RSS';
+    throw new Error('Invalid RSS');
   }
 
   const feedTitle = element.querySelector('title');

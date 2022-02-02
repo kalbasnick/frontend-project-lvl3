@@ -14,7 +14,7 @@ const buildCardEl = (title) => {
   return card;
 };
 
-export default (state, i18nextInstance, container) => onChange(state, (path, value) => {
+export default (container, state, i18nextInstance) => onChange(state, (path, value) => {
   const elements = {
     input: container.querySelector('#url-input'),
     submitButton: container.querySelector('[type="submit"]'),
