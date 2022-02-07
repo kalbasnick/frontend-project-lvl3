@@ -67,14 +67,15 @@ export default (container, state, i18nextInstance) => onChange(state, (path, val
           postAEl.setAttribute('rel', 'noopener');
           postAEl.setAttribute('rel', 'norefferer');
           postAEl.textContent = post.title;
+          postAEl.classList.add('fw-bold');
 
-          if (post.clicked) {
-            postAEl.classList.remove('fw-bold');
-            postAEl.classList.add('fw-normal');
-            postAEl.classList.add('link-secondary');
-          } else {
-            postAEl.classList.add('fw-bold');
-          }
+          state.uiState.posts.forEach((el) => {
+            if (el.clicked && el.postId === post.id) {
+              postAEl.classList.remove('fw-bold');
+              postAEl.classList.add('fw-normal');
+              postAEl.classList.add('link-secondary');
+            }
+          });
 
           const modalButton = document.createElement('button');
           modalButton.setAttribute('type', 'button');
@@ -159,7 +160,7 @@ export default (container, state, i18nextInstance) => onChange(state, (path, val
         break;
     }
   }
-  if (path === 'data') {
+  if (path === 'data' || path === 'uiState.posts') {
     elements.feeds.innerHTML = '';
     elements.posts.innerHTML = '';
 
