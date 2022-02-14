@@ -6,7 +6,12 @@ import parseData from './parser';
 import watchState from './view';
 import resources from './locales/index';
 
-const proxyUrl = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
+const makeProxyUrl = (url) => {
+  const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
+  proxy.searchParams.set('url', url);
+
+  return proxy.href;
+};
 
 export default () => {
   const i18nextInstance = i18next.createInstance();
@@ -63,8 +68,7 @@ export default () => {
 
   const checkDataUpdates = () => setTimeout(() => {
     state.data.feeds.forEach((feed) => {
-      proxyUrl.searchParams.set('url', feed.url);
-      axios.get(proxyUrl.href)
+      axios.get(makeProxyUrl(feed.url))
         .then((responce) => {
           const loadedData = responce.data.contents;
           const parsedData = parseData(loadedData);
@@ -89,9 +93,9 @@ export default () => {
             feeds: state.data.feeds,
             posts: [...state.data.posts, ...updatedPosts],
           };
-        });
+        })
+        .then(() => checkDataUpdates());
     });
-    checkDataUpdates();
   }, 5000);
 
   checkDataUpdates();
@@ -107,8 +111,7 @@ export default () => {
         state.form.error = [];
         state.form.valid = true;
         watchedState.form.processState = 'sending';
-        proxyUrl.searchParams.set('url', url);
-        axios.get(proxyUrl.href)
+        axios.get(makeProxyUrl(url))
           .then((responce) => {
             const loadedData = responce.data.contents;
             const parsedData = parseData(loadedData);
