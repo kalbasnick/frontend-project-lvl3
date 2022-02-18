@@ -51,22 +51,7 @@ export default () => {
   const form = document.querySelector('.rss-form');
   const postsEl = document.querySelector('.posts');
 
-  if (!form || !postsEl) {
-    return;
-  }
-
-  postsEl.addEventListener('click', (event) => {
-    const clickedEl = event.target;
-    if (clickedEl.dataset.bsToggle === 'modal' || clickedEl.tagName === 'A') {
-      const clickedElId = clickedEl.getAttribute('data-id');
-      const updatedUiStatePosts = state.uiState.posts
-        .map((el) => (el.postId === clickedElId ? { ...el, clicked: true } : el));
-
-      watchedState.uiState.posts = updatedUiStatePosts;
-    }
-  });
-
-  const checkDataUpdates = () => setTimeout(() => {
+  const checkDataUpdates = () => {
     state.data.feeds.forEach((feed) => {
       axios.get(makeProxyUrl(feed.url))
         .then((responce) => {
@@ -89,16 +74,29 @@ export default () => {
               return updatedPost;
             });
 
-          watchedState.data = {
-            feeds: state.data.feeds,
-            posts: [...state.data.posts, ...updatedPosts],
-          };
-        })
-        .then(() => checkDataUpdates());
+          watchedState.data.posts = [...state.data.posts, ...updatedPosts];
+        });
     });
-  }, 5000);
+
+    setTimeout(() => checkDataUpdates(), 5000);
+  };
 
   checkDataUpdates();
+
+  if (!form || !postsEl) {
+    return;
+  }
+
+  postsEl.addEventListener('click', (event) => {
+    const clickedEl = event.target;
+    if (clickedEl.dataset.bsToggle === 'modal' || clickedEl.tagName === 'A') {
+      const clickedElId = clickedEl.getAttribute('data-id');
+      const updatedUiStatePosts = state.uiState.posts
+        .map((el) => (el.postId === clickedElId ? { ...el, clicked: true } : el));
+
+      watchedState.uiState.posts = updatedUiStatePosts;
+    }
+  });
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();

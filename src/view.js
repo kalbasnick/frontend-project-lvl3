@@ -160,13 +160,20 @@ export default (container, state, i18nextInstance) => onChange(state, (path, val
         break;
     }
   }
-  if (path === 'data' || path === 'uiState.posts') {
+  if (path === 'data') {
     elements.feeds.innerHTML = '';
     elements.posts.innerHTML = '';
 
     const [feed, posts] = render(state.data);
 
     elements.feeds.append(feed);
+    elements.posts.prepend(posts);
+  }
+  if (path === 'data.posts' || path === 'uiState.posts') {
+    elements.posts.innerHTML = '';
+
+    const [, posts] = render(state.data);
+
     elements.posts.prepend(posts);
   }
 });
