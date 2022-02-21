@@ -10,6 +10,7 @@ const makeProxyUrl = (url) => {
   const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
   proxy.searchParams.set('url', url);
 
+  console.log(proxy.searchParams.get('url'));
   return proxy.href;
 };
 

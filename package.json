@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Third Hexlet's Javascript Frontend Project",
   "main": "src/index.js",
-  "type": "module",
   "scripts": {
     "test": "npx jest",
     "build": "webpack --mode production",
