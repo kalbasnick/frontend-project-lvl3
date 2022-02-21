@@ -1,12 +1,14 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+// const path = require('path');
+// const HtmlWebpackPlugin = require('html-webpack-plugin');
+import path, { dirname } from 'path';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 
-module.exports = {
+export default {
   mode: 'development',
   entry: './src/index.js',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'public'),
+    path: path.resolve(dirname('bundle.js'), 'public'),
   },
   plugins: [
     new HtmlWebpackPlugin({

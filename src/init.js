@@ -1,10 +1,11 @@
+/* eslint-disable import/extensions */
 import * as yup from 'yup';
 import axios from 'axios';
 import i18next from 'i18next';
 import _ from 'lodash';
-import parseData from './parser';
-import watchState from './view';
-import resources from './locales/index';
+import parseData from './parser.js';
+import watchState from './view.js';
+import resources from './locales/index.js';
 
 const makeProxyUrl = (url) => {
   const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
