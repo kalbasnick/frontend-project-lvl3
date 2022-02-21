@@ -7,14 +7,6 @@ import parseData from './parser.js';
 import watchState from './view.js';
 import resources from './locales/index.js';
 
-const makeProxyUrl = (url) => {
-  const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
-  proxy.searchParams.set('url', url);
-
-  console.log(proxy.searchParams.get('url'));
-  return proxy.href;
-};
-
 export default () => {
   const i18nextInstance = i18next.createInstance();
   i18nextInstance
@@ -47,6 +39,14 @@ export default () => {
     uiState: {
       posts: [],
     },
+  };
+
+  const makeProxyUrl = (url) => {
+    const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
+    proxy.searchParams.set('url', url);
+
+    console.log(proxy.searchParams.get('url'));
+    return proxy.href;
   };
 
   const watchedState = watchState(document, state, i18nextInstance);
