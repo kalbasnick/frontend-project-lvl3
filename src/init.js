@@ -44,7 +44,6 @@ export default () => {
   const makeProxyUrl = (url) => {
     const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
     proxy.searchParams.set('url', url);
-    console.log(proxy.searchParams.get('url'));
 
     return proxy.href;
   };
@@ -107,6 +106,7 @@ export default () => {
     const url = formData.get('url');
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
+    console.log();
     schema(feedsLog).validate(url)
       .then(() => {
         state.form.error = [];
