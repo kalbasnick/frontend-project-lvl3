@@ -53,7 +53,7 @@ export default () => {
   const postsEl = document.querySelector('.posts');
 
   const checkDataUpdates = () => {
-    const updatedFeeds = state.data.feeds.forEach((feed) => {
+    state.data.feeds.forEach((feed) => {
       axios.get(makeProxyUrl(feed.url))
         .then((responce) => {
           const loadedData = responce.data.contents;
@@ -79,8 +79,7 @@ export default () => {
         });
     });
 
-    Promise.all([updatedFeeds])
-      .then(() => setTimeout(() => checkDataUpdates(), 5000));
+    setTimeout(() => checkDataUpdates(), 5000);
   };
 
   checkDataUpdates();
