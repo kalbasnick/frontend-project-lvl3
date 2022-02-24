@@ -49,6 +49,7 @@ export default () => {
 
   const watchedState = watchState(document, state, i18nextInstance);
   const form = document.querySelector('.rss-form');
+  const input = document.getElementsByTagName('input');
   const postsEl = document.querySelector('.posts');
 
   const checkDataUpdates = () => {
@@ -103,9 +104,9 @@ export default () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
+    console.log(url);
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
-    console.log(url);
     schema(feedsLog).validate(url)
       .then(() => {
         state.form.error = [];
@@ -136,12 +137,14 @@ export default () => {
             form.focus();
           })
           .catch((err) => {
+            formData.delete('url');
             state.form.error = err;
             state.form.valid = false;
             watchedState.form.processState = 'loadingError';
           });
       })
       .catch((err) => {
+        formData.delete('url');
         state.form.error = err.errors;
         state.form.valid = false;
         watchedState.form.processState = 'validationError';
