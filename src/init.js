@@ -49,8 +49,12 @@ export default () => {
 
   const watchedState = watchState(document, state, i18nextInstance);
   const form = document.querySelector('.rss-form');
-  const input = document.getElementsByTagName('input');
+  const input = document.querySelector('input');
   const postsEl = document.querySelector('.posts');
+
+  input.addEventListener('change', (e) => {
+    // console.log(e);
+  });
 
   const checkDataUpdates = () => {
     const updatedFeeds = state.data.feeds.forEach((feed) => {
@@ -104,7 +108,6 @@ export default () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
-    console.log(url);
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
     schema(feedsLog).validate(url)
@@ -117,6 +120,13 @@ export default () => {
             const loadedData = responce.data.contents;
             const parsedData = parseData(loadedData);
             const { feedData, postsData } = parsedData;
+            console.log(url, 1);
+
+            form.reset();
+            form.focus();
+            formData.delete('url');
+            console.log(url, 2);
+            console.log(formData.get('url'), 3);
 
             const feedId = _.uniqueId();
             const feed = { ...feedData, url, id: feedId };
@@ -133,18 +143,14 @@ export default () => {
             };
 
             watchedState.form.processState = 'proceed';
-            form.reset();
-            form.focus();
           })
           .catch((err) => {
-            formData.delete('url');
             state.form.error = err;
             state.form.valid = false;
             watchedState.form.processState = 'loadingError';
           });
       })
       .catch((err) => {
-        formData.delete('url');
         state.form.error = err.errors;
         state.form.valid = false;
         watchedState.form.processState = 'validationError';
