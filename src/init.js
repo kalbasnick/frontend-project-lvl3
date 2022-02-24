@@ -103,7 +103,7 @@ export default () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
-    console.log(url);
+    console.log(new FormData(e.target).get('url'), 0);
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
     schema(feedsLog).validate(url)
@@ -137,12 +137,14 @@ export default () => {
             watchedState.form.processState = 'proceed';
           })
           .catch((err) => {
+            console.log(new FormData(e.target).get('url'), 2);
             state.form.error = err;
             state.form.valid = false;
             watchedState.form.processState = 'loadingError';
           });
       })
       .catch((err) => {
+        console.log(new FormData(e.target).get('url'), 1);
         state.form.error = err.errors;
         state.form.valid = false;
         watchedState.form.processState = 'validationError';
