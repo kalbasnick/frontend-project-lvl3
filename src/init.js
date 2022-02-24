@@ -49,12 +49,7 @@ export default () => {
 
   const watchedState = watchState(document, state, i18nextInstance);
   const form = document.querySelector('.rss-form');
-  const input = document.querySelector('input');
   const postsEl = document.querySelector('.posts');
-
-  input.addEventListener('change', (e) => {
-    // console.log(e);
-  });
 
   const checkDataUpdates = () => {
     const updatedFeeds = state.data.feeds.forEach((feed) => {
