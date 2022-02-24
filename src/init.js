@@ -49,6 +49,7 @@ export default () => {
 
   const watchedState = watchState(document, state, i18nextInstance);
   const form = document.querySelector('.rss-form');
+  const input = document.querySelector('input');
   const postsEl = document.querySelector('.posts');
 
   const checkDataUpdates = () => {
@@ -84,7 +85,7 @@ export default () => {
 
   checkDataUpdates();
 
-  if (!form || !postsEl) {
+  if (!form || !postsEl || !input) {
     return;
   }
 
@@ -103,6 +104,7 @@ export default () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
+    input.value = '';
     console.log(new FormData(e.target).get('url'), 0);
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
@@ -137,14 +139,12 @@ export default () => {
             watchedState.form.processState = 'proceed';
           })
           .catch((err) => {
-            console.log(new FormData(e.target).get('url'), 2);
             state.form.error = err;
             state.form.valid = false;
             watchedState.form.processState = 'loadingError';
           });
       })
       .catch((err) => {
-        console.log(new FormData(e.target).get('url'), 1);
         state.form.error = err.errors;
         state.form.valid = false;
         watchedState.form.processState = 'validationError';
