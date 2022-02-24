@@ -2,16 +2,9 @@ import * as yup from 'yup';
 import axios from 'axios';
 import i18next from 'i18next';
 import _ from 'lodash';
-import parseData from './parser';
-import watchState from './view';
-import resources from './locales/index';
-
-const makeProxyUrl = (url) => {
-  const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
-  proxy.searchParams.set('url', url);
-
-  return proxy.href;
-};
+import parseData from './parser.js';
+import watchState from './view.js';
+import resources from './locales/index.js';
 
 export default () => {
   const i18nextInstance = i18next.createInstance();
@@ -45,6 +38,13 @@ export default () => {
     uiState: {
       posts: [],
     },
+  };
+
+  const makeProxyUrl = (url) => {
+    const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get?disableCache=true');
+    proxy.searchParams.set('url', url);
+
+    return proxy.href;
   };
 
   const watchedState = watchState(document, state, i18nextInstance);
@@ -103,6 +103,8 @@ export default () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
+    const input = document.querySelector('input');
+    input.value = '';
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
     schema(feedsLog).validate(url)
@@ -115,6 +117,9 @@ export default () => {
             const loadedData = responce.data.contents;
             const parsedData = parseData(loadedData);
             const { feedData, postsData } = parsedData;
+
+            form.reset();
+            form.focus();
 
             const feedId = _.uniqueId();
             const feed = { ...feedData, url, id: feedId };
@@ -131,8 +136,6 @@ export default () => {
             };
 
             watchedState.form.processState = 'proceed';
-            form.reset();
-            form.focus();
           })
           .catch((err) => {
             state.form.error = err;
