@@ -1,5 +1,5 @@
 import 'bootstrap';
-import init from './init.js';
+import init from './init';
 
 export default init;
 init();

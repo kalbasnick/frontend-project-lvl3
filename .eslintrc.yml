@@ -6,6 +6,4 @@ extends:
 parserOptions:
   ecmaVersion: 13
   sourceType: module
-rules: {
-  import/extensions: [0],
-}
+rules: {}
