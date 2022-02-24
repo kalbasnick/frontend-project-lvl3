@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import * as yup from 'yup';
 import axios from 'axios';
 import i18next from 'i18next';
@@ -106,7 +105,7 @@ export default () => {
     const url = formData.get('url');
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
-    console.log();
+    console.log(url);
     schema(feedsLog).validate(url)
       .then(() => {
         state.form.error = [];
