@@ -103,6 +103,7 @@ export default () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
+    console.log(url);
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
     schema(feedsLog).validate(url)
@@ -115,13 +116,9 @@ export default () => {
             const loadedData = responce.data.contents;
             const parsedData = parseData(loadedData);
             const { feedData, postsData } = parsedData;
-            console.log(url, 1);
 
             form.reset();
             form.focus();
-            formData.delete('url');
-            console.log(url, 2);
-            console.log(formData.get('url'), 3);
 
             const feedId = _.uniqueId();
             const feed = { ...feedData, url, id: feedId };
