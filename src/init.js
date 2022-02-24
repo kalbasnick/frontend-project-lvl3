@@ -49,7 +49,6 @@ export default () => {
 
   const watchedState = watchState(document, state, i18nextInstance);
   const form = document.querySelector('.rss-form');
-  const input = document.querySelector('input');
   const postsEl = document.querySelector('.posts');
 
   const checkDataUpdates = () => {
@@ -85,7 +84,7 @@ export default () => {
 
   checkDataUpdates();
 
-  if (!form || !postsEl || !input) {
+  if (!form || !postsEl) {
     return;
   }
 
@@ -104,8 +103,8 @@ export default () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
+    const input = document.querySelector('input');
     input.value = '';
-    console.log(new FormData(e.target).get('url'), 0);
     const feedsLog = state.data.feeds.map((feed) => feed.url);
     const schema = (data) => yup.string().url().required().notOneOf(data);
     schema(feedsLog).validate(url)
