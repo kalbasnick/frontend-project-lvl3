@@ -52,33 +52,31 @@ export default () => {
   const postsEl = document.querySelector('.posts');
 
   const checkDataUpdates = () => {
-    const updatedFeeds = state.data.feeds.forEach((feed) => {
-      axios.get(makeProxyUrl(feed.url))
-        .then((responce) => {
-          const loadedData = responce.data.contents;
-          const parsedData = parseData(loadedData);
-          const { postsData } = parsedData;
+    const updatedFeeds = state.data.feeds.map((feed) => axios.get(makeProxyUrl(feed.url))
+      .then((responce) => {
+        const loadedData = responce.data.contents;
+        const parsedData = parseData(loadedData);
+        const { postsData } = parsedData;
 
-          const extractedUpdatedPosts = postsData
-            .map((post) => ({ ...post, feedId: feed.id, id: _.uniqueId() }));
+        const extractedUpdatedPosts = postsData
+          .map((post) => ({ ...post, feedId: feed.id, id: _.uniqueId() }));
 
-          const currentPostsTitlesOfFeed = state.data.posts
-            .filter((post) => post.feedId === feed.id)
-            .map((post) => post.title);
+        const currentPostsTitlesOfFeed = state.data.posts
+          .filter((post) => post.feedId === feed.id)
+          .map((post) => post.title);
 
-          const updatedPosts = extractedUpdatedPosts
-            .filter((updatedPost) => !currentPostsTitlesOfFeed.includes(updatedPost.title))
-            .map((updatedPost) => {
-              state.uiState.posts.push({ postId: updatedPost.id, clicked: false });
+        const updatedPosts = extractedUpdatedPosts
+          .filter((updatedPost) => !currentPostsTitlesOfFeed.includes(updatedPost.title))
+          .map((updatedPost) => {
+            state.uiState.posts.push({ postId: updatedPost.id, clicked: false });
 
-              return updatedPost;
-            });
+            return updatedPost;
+          });
 
-          watchedState.data.posts = [...state.data.posts, ...updatedPosts];
-        });
-    });
+        watchedState.data.posts = [...state.data.posts, ...updatedPosts];
+      }));
 
-    Promise.all([updatedFeeds])
+    Promise.all(updatedFeeds)
       .then(() => setTimeout(() => checkDataUpdates(), 5000));
   };
 
